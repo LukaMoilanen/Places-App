@@ -1,34 +1,32 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-
-type Place = {
-    ID: number;
-    Name: string;
-    Latitude: number;
-    Longitude: number;
-    UserID: number;
-};
+import '../styles.css';
+import { getPlaces } from './api';
+import type { Place } from '../types';
+import { PlaceMarker } from './components/PlaceMarker';
+import { MapFocus } from './components/MapFocus';
 
 const App = () => {
     const [places, setPlaces] = useState<Place[]>([]);
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const selectedPlace = places.find((p) => p.ID === selectedId) ?? null;
 
     useEffect(() => {
-        const getAllPlaces = async () => {
-            const data = await fetch(
-                import.meta.env.VITE_SERVER_URL + '/api/places',
-            );
-            const obj = await data.json();
-            setPlaces(obj);
-        };
-        getAllPlaces();
+        getPlaces()
+            .then(setPlaces)
+            .catch((err) => console.error(err));
     }, []);
 
     return (
         <>
             <ul>
                 {places.map((p) => (
-                    <li key={p.ID}>
+                    <li
+                        key={p.ID}
+                        onClick={() => setSelectedId(p.ID)}
+                        className={p.ID === selectedId ? 'selected' : ''}
+                    >
                         {p.Name} ({p.Latitude.toFixed(4)},{' '}
                         {p.Longitude.toFixed(4)})
                     </li>
@@ -44,10 +42,14 @@ const App = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 {places.map((p) => (
-                    <Marker key={p.ID} position={[p.Latitude, p.Longitude]}>
-                        <Popup>{p.Name}</Popup>
-                    </Marker>
+                    <PlaceMarker
+                        key={p.ID}
+                        place={p}
+                        isSelected={p.ID === selectedId}
+                        onSelect={setSelectedId}
+                    />
                 ))}
+                <MapFocus selectedPlace={selectedPlace} />
             </MapContainer>
         </>
     );

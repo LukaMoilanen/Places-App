@@ -1,0 +1,15 @@
+.selected {
+    color: blue;
+}
+
+.place-marker {
+    background-color: #2563eb;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+}
+
+.place-marker-selected {
+    background-color: #ef4444;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.35);
+}
