@@ -7,6 +7,7 @@ import { MapClickHandler } from './MapClickHandler';
 import { NewPlaceMarker } from './NewPlaceMarker';
 import { AuthForm } from './AuthForm';
 import { AddPlaceForm } from './AddPlaceForm';
+import { PlaceActions } from './PlaceActions';
 
 type PlacesViewProps = {
     places: Place[];
@@ -14,6 +15,8 @@ type PlacesViewProps = {
     onLogin: (user: User) => void;
     onLogout: () => void;
     onAddPlace: (name: string, lat: number, lng: number) => Promise<Place>;
+    onEditPlace: (id: number, name: string) => Promise<void>;
+    onDeletePlace: (id: number) => Promise<void>;
 };
 
 export function PlacesView({
@@ -22,6 +25,8 @@ export function PlacesView({
     onLogin,
     onLogout,
     onAddPlace,
+    onEditPlace,
+    onDeletePlace,
 }: PlacesViewProps) {
     const [selectedId, setSelectedId] = useState<number | null>(null);
     // the spot the user clicked on the map for a new place
@@ -34,6 +39,13 @@ export function PlacesView({
         setPosition(null);
         setSelectedId(newPlace.ID);
     };
+
+    const handleDelete = async (id: number) => {
+        await onDeletePlace(id);
+        if (id === selectedId) setSelectedId(null);
+    };
+
+    const canModify = (place: Place) => user !== null && place.UserID === user.ID;
 
     const handleLogout = () => {
         setPosition(null); // forget the picked spot
@@ -70,8 +82,17 @@ export function PlacesView({
                                 onClick={() => setSelectedId(p.ID)}
                                 className={p.ID === selectedId ? 'selected' : ''}
                             >
-                                {p.Name} ({p.Latitude.toFixed(4)},{' '}
-                                {p.Longitude.toFixed(4)})
+                                <span>
+                                    {p.Name} ({p.Latitude.toFixed(4)},{' '}
+                                    {p.Longitude.toFixed(4)})
+                                </span>
+                                {canModify(p) && (
+                                    <PlaceActions
+                                        place={p}
+                                        onEdit={onEditPlace}
+                                        onDelete={handleDelete}
+                                    />
+                                )}
                             </li>
                         ))}
                     </ul>
@@ -91,7 +112,15 @@ export function PlacesView({
                             place={p}
                             isSelected={p.ID === selectedId}
                             onSelect={setSelectedId}
-                        />
+                        >
+                            {canModify(p) && (
+                                <PlaceActions
+                                    place={p}
+                                    onEdit={onEditPlace}
+                                    onDelete={handleDelete}
+                                />
+                            )}
+                        </PlaceMarker>
                     ))}
                     <MapFocus selectedPlace={selectedPlace} />
                     {/* the spot the user picked for a new place */}

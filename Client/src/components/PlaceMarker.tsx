@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import L from 'leaflet';
 import { Marker, Popup } from 'react-leaflet';
 import type { Place } from '../../types';
@@ -19,9 +20,10 @@ type PlaceMarkerProps = {
     place: Place;
     isSelected: boolean;
     onSelect: (id: number) => void;
+    children?: ReactNode;
 };
 
-export function PlaceMarker({ place, isSelected, onSelect }: PlaceMarkerProps) {
+export function PlaceMarker({ place, isSelected, onSelect, children }: PlaceMarkerProps) {
     const markerRef = useRef<L.Marker | null>(null);
 
     useEffect(() => {
@@ -43,7 +45,12 @@ export function PlaceMarker({ place, isSelected, onSelect }: PlaceMarkerProps) {
             zIndexOffset={isSelected ? 1000 : 0}
             eventHandlers={{ click: () => onSelect(place.ID) }}
         >
-            <Popup>{place.Name}</Popup>
+            <Popup>
+                <div className="popup-content">
+                    <strong>{place.Name}</strong>
+                    {children}
+                </div>
+            </Popup>
         </Marker>
     );
 }
