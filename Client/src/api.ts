@@ -17,6 +17,10 @@ const request = async <T,>(path: string, options: RequestInit = {}, token?: stri
     return res.json();
 };
 
+// true when the server says "401 Unauthorized" (missing / invalid token)
+export const isUnauthorized = (err: unknown) =>
+    err instanceof Error && 'status' in err && err.status === 401;
+
 export const getPlaces = () => request<Place[]>('/places');
 export const login = (name: string, password: string) =>
     request<User>('/login', { method: 'POST', body: JSON.stringify({ name, password }) });
