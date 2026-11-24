@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import '../styles.css';
-import { getPlaces, addPlace, isUnauthorized } from './api';
+import {
+    getPlaces,
+    addPlace,
+    editPlace,
+    deletePlace,
+    isUnauthorized,
+} from './api';
 import { loadUser, saveUser, clearUser } from './auth';
 import type { Place, User } from '../types';
 import { PlacesView } from './components/PlacesView';
@@ -27,6 +33,16 @@ const App = () => {
         setUser(null);
     };
 
+    const handleApiError = (err: unknown): never => {
+        if (isUnauthorized(err)) {
+            handleLogout();
+            throw new Error(
+                'Your login is no longer valid. Please log in again.',
+            );
+        }
+        throw err;
+    };
+
     const handleAddPlace = async (name: string, lat: number, lng: number) => {
         if (!user) {
             throw new Error('Please log in first');
@@ -40,12 +56,46 @@ const App = () => {
             setPlaces((current) => [...current, newPlace]);
             return newPlace;
         } catch (err) {
-            if (isUnauthorized(err)) {
-                // the token is not valid (anymore) -> log the user out
-                handleLogout();
-                throw new Error('Your login is no longer valid. Please log in again.');
-            }
-            throw err;
+            return handleApiError(err);
+        }
+    };
+
+    const handleEditPlace = async (id: number, name: string) => {
+        if (!user) {
+            throw new Error('Please log in first');
+        }
+        const place = places.find((p) => p.ID === id);
+        if (!place) return;
+
+        try {
+            const updated = await editPlace(
+                id,
+                {
+                    Name: name,
+                    Latitude: place.Latitude,
+                    Longitude: place.Longitude,
+                    UserID: user.ID,
+                },
+                user.Token,
+            );
+            setPlaces((current) =>
+                current.map((p) => (p.ID === id ? updated : p)),
+            );
+        } catch (err) {
+            handleApiError(err);
+        }
+    };
+
+    const handleDeletePlace = async (id: number) => {
+        if (!user) {
+            throw new Error('Please log in first');
+        }
+
+        try {
+            await deletePlace(id, user.Token);
+            setPlaces((current) => current.filter((p) => p.ID !== id));
+        } catch (err) {
+            handleApiError(err);
         }
     };
 
@@ -56,6 +106,8 @@ const App = () => {
             onLogin={handleLogin}
             onLogout={handleLogout}
             onAddPlace={handleAddPlace}
+            onEditPlace={handleEditPlace}
+            onDeletePlace={handleDeletePlace}
         />
     );
 };

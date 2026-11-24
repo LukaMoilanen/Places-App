@@ -78,6 +78,10 @@ body {
 }
 
 .place-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
     padding: 12px 16px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
@@ -135,4 +139,29 @@ body {
    but the markers keep the normal pointer hand because clicking them selects them */
 .leaflet-crosshair .leaflet-marker-icon {
     cursor: pointer;
+}
+
+.place-actions {
+    display: inline-flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.icon-button {
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.popup-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
